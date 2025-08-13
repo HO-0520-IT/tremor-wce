@@ -18,7 +18,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#if !defined(UNDER_CE)
 #include <errno.h>
+#endif
 #include <string.h>
 
 #include "ivorbiscodec.h"
@@ -59,13 +61,21 @@
 
 /* read a little more data from the file/pipe into the ogg_sync framer */
 static long _get_data(OggVorbis_File *vf){
+#if !defined(UNDER_CE)
   errno=0;
+#else
+  int errno=0;
+#endif
   if(!(vf->callbacks.read_func))return(-1);
   if(vf->datasource){
     char *buffer=ogg_sync_buffer(&vf->oy,READSIZE);
     long bytes=(vf->callbacks.read_func)(buffer,1,READSIZE,vf->datasource);
     if(bytes>0)ogg_sync_wrote(&vf->oy,bytes);
+#if !defined(UNDER_CE)
     if(bytes==0 && errno)return(-1);
+#else
+    if(bytes==0)return(-1);
+#endif
     return(bytes);
   }else
     return(0);
